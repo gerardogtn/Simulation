@@ -7,7 +7,7 @@
 # Returns the performance measures of the queueing system.
 function R = simulation(arrivalType, arrivalParams, departureType, departureParams, s)
   # Set seed for testing.
-  rand("seed", 3);
+  % rand("seed", 3);
   # Get functions
   arrivalFunction = getFunction(arrivalType, arrivalParams);
   departureFunction = getFunction(departureType, departureParams);
@@ -46,7 +46,7 @@ end
 # a queueing system with s servers.
 function R = simulate(arrivalFunction, departureFunction, s)
   R = 0;
-  MAX_TIME = 50000;
+  MAX_TIME = 1000000;
   t = 0;
   n = 0;
   nextArrival = arrivalFunction();
@@ -55,6 +55,10 @@ function R = simulate(arrivalFunction, departureFunction, s)
 
   maxN = 0;
   totalN = 0;
+
+  emptyTime = 0;
+  WS = 0;
+  WQ = 0;
 
   while (t < MAX_TIME)
     % n
@@ -67,7 +71,6 @@ function R = simulate(arrivalFunction, departureFunction, s)
       nextArrival = -1;
       n = n + 1;
       totalN = totalN + 1;
-      maxN = max(n, maxN);
     else
       t = nextDeparture;
       nextDeparture = -1;
@@ -78,6 +81,8 @@ function R = simulate(arrivalFunction, departureFunction, s)
       if (nextArrival == -1)
         nextArrival = t + arrivalFunction();
       endif
+
+      emptyTime = nextArrival - t + emptyTime;
       nextDeparture = -1;
       nextEventType = "arrival";
     else
@@ -86,18 +91,54 @@ function R = simulate(arrivalFunction, departureFunction, s)
       endif
 
       if (nextDeparture == -1)
-        nextDeparture = t+ departureFunction();
+        nextDeparture = t + departureFunction();
       endif
 
       if (nextArrival > nextDeparture)
         nextEventType = "departure";
+        WS = WS + n * (nextDeparture - t);
+        if (n > 1)
+          WQ = WQ + (n - 1) * (nextDeparture - t);
+        end
       else
         nextEventType = "arrival";
+        WS = WS + n * (nextArrival - t);
+        WQ = WQ + (n - 1) * (nextArrival - t);
       endif
     endif
   endwhile
-  maxN
-  totalN
-  t/totalN
 
+  p0 = emptyTime/t
+  L = WS / t
+  W = WS / totalN
+  Lq = WQ / t
+  Wq = WQ / totalN
+
+end
+
+function R = simulationLoop(arrivalFunction, departureFunction, s)
+  MAX_TIME = 50000;
+  t = 0;
+  n = 0;
+
+  isNextArrival = true;
+  while (t < MAX_TIME)
+      if (isSystemEmpty(n))
+        t = arrivalFunction() + t;
+        isNextArrival = true;
+      else
+        onNewEvent(isNextArrival, n)
+      end
+  end
+end
+
+function R = onNewEvent(isArrival, n, arrivalFunction, departureFunction)
+  t = 0;
+  if (isArrival)
+    n = n + 1;
+    t = arrivalFunction();
+  else
+    n = n - 1;
+    t = departureFunction();
+  end
 end
