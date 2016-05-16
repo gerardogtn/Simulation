@@ -15,6 +15,9 @@ function R = simulation(arrivalType, arrivalParams, departureType, departurePara
   R = simulate(arrivalFunction, departureFunction, s)
 end
 
+# String List<Number> -> (Void -> Real)
+# Given a supported random distribution function name and its params
+# return a lambda to such random distribution function.
 function fn = getFunction(type, params)
   fn = @() rand();
   if (strcmp(type, "exponencial"))
@@ -46,99 +49,56 @@ end
 # a queueing system with s servers.
 function R = simulate(arrivalFunction, departureFunction, s)
   R = 0;
-  MAX_TIME = 1000000;
+  MAX_TIME = 500000;
   t = 0;
   n = 0;
-  nextArrival = arrivalFunction();
+
+  nextArrival = -1;
   nextDeparture = -1;
-  nextEventType = "arrival";
-
-  maxN = 0;
   totalN = 0;
-
   emptyTime = 0;
   WS = 0;
   WQ = 0;
 
   while (t < MAX_TIME)
-    % n
-    % t
-    % nextArrival
-    % nextDeparture
-    % nextEventType
-    if (strcmp(nextEventType, "arrival"))
-      t = nextArrival;
-      nextArrival = -1;
-      n = n + 1;
-      totalN = totalN + 1;
-    else
-      t = nextDeparture;
-      nextDeparture = -1;
-      n = n - 1;
-    endif
-
     if (n == 0)
-      if (nextArrival == -1)
-        nextArrival = t + arrivalFunction();
-      endif
-
-      emptyTime = nextArrival - t + emptyTime;
+      nextArrival = arrivalFunction();
       nextDeparture = -1;
-      nextEventType = "arrival";
+      emptyTime = emptyTime + nextArrival;
     else
       if (nextArrival == -1)
-        nextArrival = t + arrivalFunction();
+        nextArrival = arrivalFunction();
       endif
 
       if (nextDeparture == -1)
-        nextDeparture = t + departureFunction();
+        nextDeparture = departureFunction();
       endif
+    endif
 
-      if (nextArrival > nextDeparture)
-        nextEventType = "departure";
-        WS = WS + n * (nextDeparture - t);
-        if (n > 1)
-          WQ = WQ + (n - 1) * (nextDeparture - t);
-        end
-      else
-        nextEventType = "arrival";
-        WS = WS + n * (nextArrival - t);
-        WQ = WQ + (n - 1) * (nextArrival - t);
+    if (nextDeparture == -1 || nextArrival <= nextDeparture)
+      if (nextDeparture != -1)
+        nextDeparture = nextDeparture - nextArrival;
       endif
+      WS = WS + n * nextArrival;
+      WQ = WQ + n * nextArrival;
+      t = t + nextArrival;
+      n = n + 1;
+      totalN = totalN + 1;
+      nextArrival = -1;
+    else
+      WS = WS + n * nextDeparture;
+      WQ = WQ + (n - 1) * nextDeparture;
+      nextArrival = nextArrival - nextDeparture;
+      t = t + nextDeparture;
+      n = n - 1;
+      nextDeparture = -1;
     endif
   endwhile
 
-  p0 = emptyTime/t
+  p0 = emptyTime / t
   L = WS / t
   W = WS / totalN
   Lq = WQ / t
   Wq = WQ / totalN
 
-end
-
-function R = simulationLoop(arrivalFunction, departureFunction, s)
-  MAX_TIME = 50000;
-  t = 0;
-  n = 0;
-
-  isNextArrival = true;
-  while (t < MAX_TIME)
-      if (isSystemEmpty(n))
-        t = arrivalFunction() + t;
-        isNextArrival = true;
-      else
-        onNewEvent(isNextArrival, n)
-      end
-  end
-end
-
-function R = onNewEvent(isArrival, n, arrivalFunction, departureFunction)
-  t = 0;
-  if (isArrival)
-    n = n + 1;
-    t = arrivalFunction();
-  else
-    n = n - 1;
-    t = departureFunction();
-  end
 end
