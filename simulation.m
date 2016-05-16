@@ -57,15 +57,21 @@ function R = simulate(arrivalFunction, departureFunction, s)
   nextDeparture = -1;
   totalN = 0;
   emptyTime = 0;
+  # Total wait time in system.
   WS = 0;
+  # Total wait time in queue.
   WQ = 0;
 
+  # Main loop
   while (t < MAX_TIME)
+    # If there are no clients in the system, get next arrival time
+    # and update emptyTime with time until next arrival.
     if (n == 0)
       nextArrival = arrivalFunction();
       nextDeparture = -1;
       emptyTime = emptyTime + nextArrival;
     else
+      # Get times of next arrival and nextdeparture.
       if (nextArrival == -1)
         nextArrival = arrivalFunction();
       endif
@@ -75,6 +81,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
       endif
     endif
 
+    # Update clients, waits in system, clock, and reset next time of event.
     if (nextDeparture == -1 || nextArrival <= nextDeparture)
       if (nextDeparture != -1)
         nextDeparture = nextDeparture - nextArrival;
@@ -87,6 +94,8 @@ function R = simulate(arrivalFunction, departureFunction, s)
       nextArrival = -1;
     else
       WS = WS + n * nextDeparture;
+      # If next event is a departure, then only n - 1 clients are in queue
+      # since one is in server.
       WQ = WQ + (n - 1) * nextDeparture;
       nextArrival = nextArrival - nextDeparture;
       t = t + nextDeparture;
@@ -95,6 +104,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
     endif
   endwhile
 
+  # Print simulation values. 
   p0 = emptyTime / t
   L = WS / t
   W = WS / totalN
