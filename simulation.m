@@ -7,7 +7,7 @@
 # Returns the performance measures of the queueing system.
 function R = simulation(arrivalType, arrivalParams, departureType, departureParams, s)
   # Set seed for testing.
-  % rand("seed", 3);
+  rand("seed", 3);
   # Get functions
   arrivalFunction = getFunction(arrivalType, arrivalParams);
   departureFunction = getFunction(departureType, departureParams);
@@ -66,7 +66,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
   while (t < MAX_TIME)
     # If there are no clients in the system, get next arrival time
     # and update emptyTime with time until next arrival.
-    if (n == 0)
+    if (n < s)
       nextArrival = arrivalFunction();
       nextDeparture = -1;
       emptyTime = emptyTime + nextArrival;
@@ -88,8 +88,8 @@ function R = simulate(arrivalFunction, departureFunction, s)
       endif
       WS = WS + n * nextArrival;
       # If there is more than one client in the system, one is being processed.
-      if (n > 1)
-        WQ = WQ + (n - 1) * nextArrival;
+      if (n > s)
+        WQ = WQ + (n - s) * nextArrival;
       endif
       t = t + nextArrival;
       n = n + 1;
@@ -99,7 +99,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
       WS = WS + n * nextDeparture;
       # If next event is a departure, then only n - 1 clients are in queue
       # since one is in server.
-      WQ = WQ + (n - 1) * nextDeparture;
+      WQ = WQ + (n - s) * nextDeparture;
       nextArrival = nextArrival - nextDeparture;
       t = t + nextDeparture;
       n = n - 1;
