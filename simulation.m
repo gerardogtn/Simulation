@@ -87,7 +87,10 @@ function R = simulate(arrivalFunction, departureFunction, s)
         nextDeparture = nextDeparture - nextArrival;
       endif
       WS = WS + n * nextArrival;
-      WQ = WQ + n * nextArrival;
+      # If there is more than one client in the system, one is being processed.
+      if (n > 1)
+        WQ = WQ + (n - 1) * nextArrival;
+      endif
       t = t + nextArrival;
       n = n + 1;
       totalN = totalN + 1;
@@ -104,7 +107,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
     endif
   endwhile
 
-  # Print simulation values. 
+  # Print simulation values.
   p0 = emptyTime / t
   L = WS / t
   W = WS / totalN
