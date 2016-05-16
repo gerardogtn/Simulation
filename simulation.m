@@ -23,7 +23,7 @@ function fn = getFunction(type, params)
   if (strcmp(type, "exponencial"))
     fn = @() (-1 / params(1)) * log(1 - rand());
   elseif (strcmp(type, "normal"))
-    fn = @() normalRandom(rand(), params(1), params(2));
+    fn = @() normalRandom(params(1), params(2));
   elseif (strcmp(type, "uniforme"))
     a = params(1);
     b = params(2);
@@ -34,14 +34,14 @@ end
 # Number Number Number -> Number
 # Dados los parametros sigma y miu de una desviacion estandar, obtener una variable
 # aleatoria x basada en un metodo especial que se adhiere a la probabilidad.
-function x = normalRandom(R, sigma, miu)
+function x = normalRandom(sigma, miu)
   N = 12;
   r = 0;
   for j = 1 : N
     r = r + rand();
   endfor
   Z = r - (N / 2);
-  x = sigma * Z - miu;
+  x = sigma * Z + miu;
 end
 
 # (void -> real) (void -> real) natural -> list<Number>
@@ -49,7 +49,7 @@ end
 # a queueing system with s servers.
 function R = simulate(arrivalFunction, departureFunction, s)
   R = 0;
-  MAX_TIME = 500000;
+  MAX_TIME = 50000;
   t = 0;
   n = 0;
 
@@ -72,13 +72,13 @@ function R = simulate(arrivalFunction, departureFunction, s)
       emptyTime = emptyTime + nextArrival;
     else
       # Get times of next arrival and nextdeparture.
-      if (nextArrival == -1)
+      while (nextArrival < 0)
         nextArrival = arrivalFunction();
-      endif
+      endwhile
 
-      if (nextDeparture == -1)
+      while (nextDeparture < 0)
         nextDeparture = departureFunction();
-      endif
+      endwhile
     endif
 
     # Update clients, waits in system, clock, and reset next time of event.
