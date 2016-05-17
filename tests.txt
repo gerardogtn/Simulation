@@ -1,0 +1,33 @@
+*********** MODELO M/M/1 ***************
+lambda = 3/60
+miu = 5/60
+
+ANALYTIC MODEL
+p0 = 0.4
+L = 1.5
+W = 30
+Lq = 0.9
+Wq = 18
+
+RESULTS
+p0 =  0.39847
+L =  1.4571
+W =  29.814
+Lq =  0.85553
+Wq =  17.506
+
+************* MODELO M/M/S *****************
+lambda = 8/60
+miu = 5/60
+s = 2
+
+ANALYTIC MODEL
+rho = 0.8
+rho' = 1.6
+p0 = 0.1111
+L  = 4.4441
+W  = 33.331
+Lq = 2.8442
+Wq = 21.331
+
+RESULTS
