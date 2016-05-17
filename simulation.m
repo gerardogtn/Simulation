@@ -54,7 +54,7 @@ function R = simulate(arrivalFunction, departureFunction, s)
   n = 0;
 
   nextArrival = -1;
-  nextDeparture = -1;
+  nextDepartures = [];
   totalN = 0;
   emptyTime = 0;
   # Total wait time in system.
@@ -66,26 +66,37 @@ function R = simulate(arrivalFunction, departureFunction, s)
   while (t < MAX_TIME)
     # If there are no clients in the system, get next arrival time
     # and update emptyTime with time until next arrival.
-    if (n < s)
-      nextArrival = arrivalFunction();
-      nextDeparture = -1;
+    if (n == 0)
+      while (nextArrival < 0)
+        nextArrival = arrivalFunction();
+      endwhile
+      nextDepartures = [];
       emptyTime = emptyTime + nextArrival;
     else
-      # Get times of next arrival and nextdeparture.
       while (nextArrival < 0)
         nextArrival = arrivalFunction();
       endwhile
 
-      while (nextDeparture < 0)
-        nextDeparture = departureFunction();
-      endwhile
+      if (length(nextDepartures) < s)
+        nextDeparture = -1;
+        while (nextDeparture < 0)
+          nextDeparture = departureFunction();
+        endwhile
+        nextDepartures = [nextDepartures nextDeparture];
+      endif
     endif
 
+    t
+    n
+    nextArrival
+    nextDepartures
+    emptyTime
+
     # Update clients, waits in system, clock, and reset next time of event.
-    if (nextDeparture == -1 || nextArrival <= nextDeparture)
-      if (nextDeparture != -1)
-        nextDeparture = nextDeparture - nextArrival;
-      endif
+    if (length(nextDepartures) == 0 || nextArrival <= min(nextDepartures))
+      for i = 1 : length(nextDepartures)
+        nextDepartures(i) = nextDepartures(i) - nextArrival;
+      endfor
       WS = WS + n * nextArrival;
       # If there is more than one client in the system, one is being processed.
       if (n > s)
@@ -96,15 +107,31 @@ function R = simulate(arrivalFunction, departureFunction, s)
       totalN = totalN + 1;
       nextArrival = -1;
     else
+      nextDeparture = min(nextDepartures);
+      temp = [];
+      found = false;
+      for i = 1 : length(nextDepartures)
+        if (nextDepartures(i) != nextDeparture && !found)
+          temp = [temp nextDepartures(i)];
+        else
+          found = true;
+        endif
+      endfor
+      nextDepartures = temp;
+
       WS = WS + n * nextDeparture;
       # If next event is a departure, then only n - 1 clients are in queue
       # since one is in server.
       WQ = WQ + (n - s) * nextDeparture;
       nextArrival = nextArrival - nextDeparture;
+      for i = 1 : length(nextDepartures)
+        nextDepartures(i) = nextDepartures(i) - nextDeparture;
+      endfor
       t = t + nextDeparture;
       n = n - 1;
       nextDeparture = -1;
     endif
+
   endwhile
 
   # Print simulation values.
