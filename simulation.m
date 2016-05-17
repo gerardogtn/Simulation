@@ -71,8 +71,12 @@ function R = simulate(arrivalFunction, departureFunction, s)
         nextArrival = arrivalFunction();
       endwhile
       nextDepartures = [];
-      emptyTime = emptyTime + nextArrival;
+      emptyTime = emptyTime + s * nextArrival;
     else
+      if (n < s)
+        emptyTime = emptyTime + (s - n) * nextArrival;
+      endif
+
       while (nextArrival < 0)
         nextArrival = arrivalFunction();
       endwhile
@@ -86,11 +90,11 @@ function R = simulate(arrivalFunction, departureFunction, s)
       endif
     endif
 
-    t
-    n
-    nextArrival
-    nextDepartures
-    emptyTime
+    % t
+    % n
+    % nextArrival
+    % nextDepartures
+    % emptyTime
 
     # Update clients, waits in system, clock, and reset next time of event.
     if (length(nextDepartures) == 0 || nextArrival <= min(nextDepartures))
@@ -122,7 +126,9 @@ function R = simulate(arrivalFunction, departureFunction, s)
       WS = WS + n * nextDeparture;
       # If next event is a departure, then only n - 1 clients are in queue
       # since one is in server.
-      WQ = WQ + (n - s) * nextDeparture;
+      if (n > s)
+        WQ = WQ + (n - s) * nextDeparture;
+      endif
       nextArrival = nextArrival - nextDeparture;
       for i = 1 : length(nextDepartures)
         nextDepartures(i) = nextDepartures(i) - nextDeparture;

@@ -31,3 +31,20 @@ Lq = 2.8442
 Wq = 21.331
 
 RESULTS
+
+
+************* MODELO M/M/S *****************
+lambda = 8/60
+miu = 5/60
+s = 3
+
+ANALYTIC MODEL
+rho = 0.5333
+rho' = 1.6
+p0 = 0.1872
+L  = 1.9129
+W  = 14.347
+Lq = 0.3129
+Wq = 2.3468
+
+RESULTS
